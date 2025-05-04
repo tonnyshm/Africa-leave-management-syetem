@@ -28,7 +28,7 @@ services:
   auth-service:
     build:
       context: ./auth-service
-    image: ${AUTH_IMAGE}:latest
+    image: senseit2000/leave-service:latest
     container_name: auth-service
     depends_on:
       - auth-mysql
@@ -42,7 +42,7 @@ services:
   leave-service:
     build:
       context: ./leave-service
-    image: ${LEAVE_IMAGE}:latest
+    image: senseit2000/auth-service:latest
     container_name: leave-service
     depends_on:
       - leave-mysql
@@ -63,7 +63,7 @@ services:
   frontend:
     build:
       context: ./leave-management-frontend
-    image: ${FRONTEND_IMAGE}:latest
+    image: senseit2000/leave-management-frontend:latest
     container_name: leave-frontend
     ports:
       - "5173:80"
