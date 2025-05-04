@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  auth-mysql:
+    image: mysql:8
+    container_name: auth-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${AUTH_DB_PASS}
+      MYSQL_DATABASE: ${AUTH_DB_NAME}
+    ports:
+      - "3307:3306"
+    volumes:
+      - auth-mysql-data:/var/lib/mysql
+
+  leave-mysql:
+    image: mysql:8
+    container_name: leave-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${LEAVE_DB_PASS}
+      MYSQL_DATABASE: ${LEAVE_DB_NAME}
+    ports:
+      - "3308:3306"
+    volumes:
+      - leave-mysql-data:/var/lib/mysql
+
+  auth-service:
+    build:
+      context: ./auth-service
+    image: ${AUTH_IMAGE}:latest
+    container_name: auth-service
+    depends_on:
+      - auth-mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://${AUTH_DB_HOST}:${AUTH_DB_PORT}/${AUTH_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${AUTH_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${AUTH_DB_PASS}
+    ports:
+      - "8081:8081"
+
+  leave-service:
+    build:
+      context: ./leave-service
+    image: ${LEAVE_IMAGE}:latest
+    container_name: leave-service
+    depends_on:
+      - leave-mysql
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://${LEAVE_DB_HOST}:${LEAVE_DB_PORT}/${LEAVE_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${LEAVE_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${LEAVE_DB_PASS}
+      MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: tonny.shema@gmail.com
+      SPRING_MAIL_PASSWORD: tjyv kjva xktx jujd
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
+    ports:
+      - "8082:8082"
+
+  frontend:
+    build:
+      context: ./leave-management-frontend
+    image: ${FRONTEND_IMAGE}:latest
+    container_name: leave-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - auth-service
+      - leave-service
+
+volumes:
+  auth-mysql-data:
+  leave-mysql-data:
